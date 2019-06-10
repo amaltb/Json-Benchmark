@@ -6,13 +6,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.module.afterburner.AfterburnerModule;
-import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Stream;
 
 /****
  * @author jbauer
@@ -33,18 +29,12 @@ public class JacksonBenchmark extends Benchmark {
         this.setup();
     }
 
-    public int objectDeserializeTest() {
+    public int de_serializationTest() {
         final Map<String, String> result = new HashMap<>();
         try {
-            sourceList.forEach(line -> {
-                final JsonNode rootNode;
-                try {
-                    rootNode = mapper.readTree(line.getBytes());
-                    traverseJsonTree(rootNode, "", allFields, result);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+            final JsonNode rootNode;
+            rootNode = mapper.readTree(sourceData);
+            traverseJsonTree(rootNode, "", allFields, result);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -86,7 +76,7 @@ public class JacksonBenchmark extends Benchmark {
 //
 //        jackson.setup();
 //        jackson.startTimer("start");
-//        jackson.objectDeserializeTest();
+//        jackson.de_serializationTest();
 //        jackson.stopTimer();
 //    }
 }

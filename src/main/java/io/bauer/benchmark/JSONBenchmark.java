@@ -1,6 +1,5 @@
 package io.bauer.benchmark;
 
-import com.github.wnameless.json.flattener.JsonFlattener;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.runner.Runner;
@@ -23,6 +22,8 @@ import java.util.concurrent.TimeUnit;
 public class JSONBenchmark {
     private final static JacksonBenchmark jackson = new JacksonBenchmark();
     private final static JsonFlattenerBenchmark jsonflat = new JsonFlattenerBenchmark();
+    private final static JsoniterBenchmark jsoniter = new JsoniterBenchmark();
+
 
 
     public static void main(String[] args) throws RunnerException {
@@ -43,16 +44,22 @@ public class JSONBenchmark {
     @Setup
     public void setup() {
 		jackson.setup();
+		jsoniter.setup();
         jsonflat.setup();
     }
 
     @Benchmark
-    public int jacksonObjectDeserialize() {
-        return jackson.objectDeserializeTest();
+    public int jacksonDe_serialize() {
+        return jackson.de_serializationTest();
     }
 
     @Benchmark
-    public int jsonflatObjectDeserialize() {
-        return jsonflat.objectDeserialize();
+    public int jsoniterDe_serialize() {
+        return jsoniter.de_serializationTest();
+    }
+
+    @Benchmark
+    public int jsonflatDe_serialize() {
+        return jsonflat.de_serializationTest();
     }
 }

@@ -1,84 +1,83 @@
-/**
- * 
- *//*
-
 package io.bauer.benchmark;
-
-import java.io.IOException;
-import java.util.List;
 
 import com.jsoniter.DecodingMode;
 import com.jsoniter.JsonIterator;
 import com.jsoniter.annotation.JsoniterAnnotationSupport;
+import com.jsoniter.any.Any;
 import com.jsoniter.output.EncodingMode;
 import com.jsoniter.output.JsonStream;
-import com.jsoniter.spi.TypeLiteral;
 
-import io.bauer.benchmark.models.User;
+import java.util.*;
 
-*/
-/**
- * @author jbauer
- *//*
+public class JsoniterBenchmark extends Benchmark {
+    static {
+        JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
+        JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
+        JsoniterAnnotationSupport.enable();
+    }
 
-public class JsoniterBenchmark extends Benchmark
-{
-	final static TypeLiteral<List<User>> userListType = new TypeLiteral<List<User>>()
-	{
-	};
+    public JsoniterBenchmark() {
+        this.setup();
+    }
 
-	public JsoniterBenchmark()
-	{
-		this.setup();
-	}
 
-	@Override
-	public void setup()
-	{
-		super.setup();
-		JsonIterator.setMode(DecodingMode.DYNAMIC_MODE_AND_MATCH_FIELD_WITH_HASH);
-		JsonStream.setMode(EncodingMode.DYNAMIC_MODE);
-		JsoniterAnnotationSupport.enable();
-	}
+    public int de_serializationTest() {
+        final Map<String, String> result = new HashMap<>();
+        try {
+            Any root = JsonIterator.deserialize(sourceData);
+            traverseJsonTree(root, "", allFields, result);
+//            System.out.println(result);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-	public int objectDeserializeTest()
-	{
-		// TODO Auto-generated method stub
+        return 1;
 
-		try
-		{
-			JsonIterator.parse(jsonData).read(userListType);
-		} catch (IOException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return 1;
+    }
 
-	}
+    private void traverseJsonTree(Any rootNode, String currentPath, Set<String> allFields, Map<String, String> result) {
+        if (rootNode == null) {
+            if (allFields.contains(currentPath)) {
+                result.put(currentPath, "");
+            }
+        } else {
+            // object
+            if (rootNode.valueType().toString().toLowerCase(Locale.ENGLISH).equals("object")) {
+                Any.EntryIterator iter = rootNode.entries();
+                while (iter.next()) {
+                    traverseJsonTree(iter.value(),
+                            Objects.equals(currentPath, "") ? iter.key() : currentPath + "." + iter.key(),
+                            allFields, result);
+                }
 
-	public int rawDeserializeTest()
-	{
-		JsonIterator.deserialize(jsonData);
-		
-		return 1;
+            }
+            // array
+            else if (rootNode.valueType().toString().toLowerCase(Locale.ENGLISH).equals("array")) {
+                traverseJsonTree(rootNode.get(0), currentPath, allFields, result);
+            }
+            // invalid node
+            else if (rootNode.valueType().toString().toLowerCase(Locale.ENGLISH).equals("invalid")) {
+                // TODO log this message
+            }
+            // value node
+            else {
+                if (rootNode.valueType().toString().equals("NULL")) {
+                    if (allFields.contains(currentPath)) {
+                        result.put(currentPath, "");
+                    }
+                } else if (allFields.contains(currentPath)) {
+                    result.put(currentPath, rootNode.toString());
+                }
+            }
+        }
+    }
 
-	}
+    public static void main(String[] args) {
+        final JsoniterBenchmark jackson = new JsoniterBenchmark();
 
-	public void warmup()
-	{
-
-		try
-		{
-			JsonIterator.parse(jsonData).read(userListType);
-		} catch (IOException e)
-		{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-	}
-
+        jackson.setup();
+        jackson.startTimer("start");
+        jackson.de_serializationTest();
+        jackson.stopTimer();
+    }
 }
-*/
